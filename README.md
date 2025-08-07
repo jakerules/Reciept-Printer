@@ -26,15 +26,26 @@ This application provides a web interface and an email webhook to print text to 
 
 ### For Development (Running Locally)
 
-The easiest way to run the application locally for development is to use the provided script.
+The easiest way to run the application locally is to use the provided script for your operating system.
 
-1.  **Run the script from your terminal:**
-    ```bash
-    ./run-local.sh
-    ```
-    If you get a "permission denied" error, you may need to make the script executable first by running: `chmod +x run-local.sh`.
+**On Windows:**
 
-    The script will install all necessary dependencies and then start the web server. You can access it at `http://localhost:8000`.
+Use the `run-local.bat` batch file. You can either double-click the file or run it from the Command Prompt:
+```batch
+run-local.bat
+```
+
+**On macOS and Linux:**
+
+Use the `run-local.sh` shell script from your terminal:
+```bash
+./run-local.sh
+```
+If you get a "permission denied" error, you may need to make the script executable first by running: `chmod +x run-local.sh`.
+
+---
+
+Both scripts will automatically install all necessary dependencies and then start the web server. You can access it at `http://localhost:8000`.
 
 #### Manual Local Setup
 

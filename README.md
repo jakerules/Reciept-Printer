@@ -24,7 +24,21 @@ This application provides a web interface and an email webhook to print text to 
     ```
     This runs the container in detached mode. The application will be available at `http://localhost:8000`.
 
-### For Development
+### For Development (Running Locally)
+
+The easiest way to run the application locally for development is to use the provided script.
+
+1.  **Run the script from your terminal:**
+    ```bash
+    ./run-local.sh
+    ```
+    If you get a "permission denied" error, you may need to make the script executable first by running: `chmod +x run-local.sh`.
+
+    The script will install all necessary dependencies and then start the web server. You can access it at `http://localhost:8000`.
+
+#### Manual Local Setup
+
+If you prefer to run the commands manually, you can follow these steps:
 
 1.  **Create a virtual environment (optional but recommended):**
     ```bash
@@ -42,7 +56,6 @@ This application provides a web interface and an email webhook to print text to 
     ```bash
     uvicorn app.main:app --reload
     ```
-    The server will be running at `http://localhost:8000`.
 
 ## How to Test
 

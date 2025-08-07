@@ -1,33 +1,46 @@
-from escpos.printer import Dummy
+from escpos.printer import Usb, Dummy
 
 class PrinterService:
     """
     A service to handle printing operations.
-    This implementation uses a 'dummy' printer that outputs to the console,
-    allowing for development without a physical printer.
+    It sends print jobs to a physical USB printer and also logs the job
+    to the console using a dummy printer.
     """
     def __init__(self):
-        self._printer = Dummy()
+        # NOTE: You must replace these values with your printer's actual IDs!
+        VENDOR_ID = 0x04b8  # CHANGE THIS
+        PRODUCT_ID = 0x0202 # CHANGE THIS
+
+        self._dummy_printer = Dummy()
+        try:
+            self._usb_printer = Usb(VENDOR_ID, PRODUCT_ID)
+            print("--- Successfully connected to USB printer ---")
+        except Exception as e:
+            print(f"!!! WARNING: Could not connect to USB printer: {e}")
+            print("!!! Printing will only be simulated in the console.")
+            self._usb_printer = None
 
     def print_text(self, text: str):
         """
-        Sends text to the dummy printer.
+        Sends text to the USB printer (if available) and the dummy printer.
         """
-        try:
-            # The dummy printer doesn't output to stdout directly.
-            # It writes to an internal buffer. We can inspect this buffer
-            # for verification if needed, but for now, we'll just log
-            # what we intend to print.
-            print("--- Sending to Dummy Printer ---")
-            print(text)
-            print("--------------------------------")
+        # Always print to the dummy printer for logging
+        print("--- Logging to Dummy Printer ---")
+        print(text)
+        # You could also get the raw ESC/POS commands from the dummy printer
+        # self._dummy_printer.text(text)
+        # raw_commands = self._dummy_printer._read()
+        print("--------------------------------")
 
-            # These commands are what would be sent to a real printer.
-            self._printer.text(text)
-            self._printer.cut()
-
-        except Exception as e:
-            print(f"An error occurred with the printer service: {e}")
+        # Send to the physical USB printer if it was connected
+        if self._usb_printer:
+            try:
+                print("--- Sending to USB Printer ---")
+                self._usb_printer.text(text)
+                self._usb_printer.cut()
+                print("------------------------------")
+            except Exception as e:
+                print(f"!!! ERROR: Could not print to USB printer: {e}")
 
 # Create a single, shared instance of the PrinterService.
 printer_service = PrinterService()

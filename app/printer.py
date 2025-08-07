@@ -7,13 +7,27 @@ class PrinterService:
     to the console using a dummy printer.
     """
     def __init__(self):
-        # NOTE: You must replace these values with your printer's actual IDs!
-        VENDOR_ID = 0x04b8  # CHANGE THIS
-        PRODUCT_ID = 0x0202 # CHANGE THIS
-
+        # =================================================================
+        # ===           PRINTER CONFIGURATION - EDIT THIS!              ===
+        # =================================================================
+        #
+        # Find your printer's Vendor ID (VID) and Product ID (PID)
+        # and replace the placeholder values below.
+        #
+        # The '0x' prefix is important!
+        #
+        VENDOR_ID = 0x04b8  # <-- REPLACE THIS VALUE
+        PRODUCT_ID = 0x0202 # <-- REPLACE THIS VALUE
+        #
+        # --- Advanced Settings ---
+        # If you still have issues, you may need to change the output endpoint.
+        # Common values are 0x01 (the default), 0x02, or 0x03.
+        OUTPUT_ENDPOINT = 0x02 # <-- TRY CHANGING THIS if needed
+        # =================================================================
+        
         self._dummy_printer = Dummy()
         try:
-            self._usb_printer = Usb(VENDOR_ID, PRODUCT_ID)
+            self._usb_printer = Usb(VENDOR_ID, PRODUCT_ID, out_ep=OUTPUT_ENDPOINT)
             print("--- Successfully connected to USB printer ---")
         except Exception as e:
             print(f"!!! WARNING: Could not connect to USB printer: {e}")
@@ -27,9 +41,6 @@ class PrinterService:
         # Always print to the dummy printer for logging
         print("--- Logging to Dummy Printer ---")
         print(text)
-        # You could also get the raw ESC/POS commands from the dummy printer
-        # self._dummy_printer.text(text)
-        # raw_commands = self._dummy_printer._read()
         print("--------------------------------")
 
         # Send to the physical USB printer if it was connected

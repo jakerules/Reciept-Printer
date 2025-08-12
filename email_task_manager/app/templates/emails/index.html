@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Emails - Email Task Manager{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1 class="mb-3">Emails</h1>
+    </div>
+    <div class="col-md-6 text-md-end">
+        <a href="{{ url_for('emails.fetch') }}" class="btn btn-primary">
+            <i class="fas fa-sync-alt me-1"></i> Fetch New Emails
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label for="processed" class="form-label">Processing Status</label>
+                <select class="form-select" id="processed" name="processed" onchange="this.form.submit()">
+                    <option value="all" {% if processed == 'all' %}selected{% endif %}>All Emails</option>
+                    <option value="yes" {% if processed == 'yes' %}selected{% endif %}>Processed</option>
+                    <option value="no" {% if processed == 'no' %}selected{% endif %}>Unprocessed</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="search" class="form-label">Search</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="search" name="search" placeholder="Search emails...">
+                    <button class="btn btn-outline-secondary" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Emails List -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+            {% for email in emails %}
+            <a href="{{ url_for('emails.view', email_id=email.id) }}" class="list-group-item list-group-item-action email-item {{ 'processed' if email.is_processed else 'unprocessed' }}">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1 email-subject">{{ email.subject }}</h5>
+                    <small class="text-muted">{{ email.received_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                </div>
+                <p class="mb-1 email-sender">
+                    From: {{ email.sender }}
+                </p>
+                <p class="mb-1 text-truncate-2">{{ email.short_body }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="badge bg-{{ 'success' if email.is_processed else 'warning' }}">
+                            {{ 'Processed' if email.is_processed else 'Unprocessed' }}
+                        </span>
+                        {% if email.task_count > 0 %}
+                        <span class="badge bg-info ms-2">
+                            {{ email.task_count }} Task{{ 's' if email.task_count != 1 }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div>
+                        {% if not email.is_processed %}
+                        <button class="btn btn-sm btn-outline-primary process-email-btn" data-email-id="{{ email.id }}">
+                            <i class="fas fa-cogs me-1"></i> Process
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+            {% else %}
+            <div class="list-group-item text-center py-4">
+                <p class="mb-0 text-muted">No emails found</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle process email buttons
+        const processButtons = document.querySelectorAll('.process-email-btn');
+        
+        processButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const emailId = this.getAttribute('data-email-id');
+                window.location.href = "{{ url_for('emails.process', email_id=0) }}".replace('0', emailId);
+            });
+        });
+    });
+</script>
+{% endblock %}
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>

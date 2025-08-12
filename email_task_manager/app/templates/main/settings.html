@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Email Task Manager{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-3">Application Settings</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">General Settings</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-3">
+                        <label for="email_check_interval" class="form-label">Email Check Interval (seconds)</label>
+                        <input type="number" class="form-control" id="email_check_interval" name="email_check_interval" 
+                               value="{{ email_check_interval }}" min="30" required>
+                        <div class="form-text">
+                            How often the system should check for new emails (minimum 30 seconds).
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Save Settings
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Email Integration</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-3">
+                        <label for="gmail_credentials" class="form-label">Gmail API Credentials</label>
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="gmail_credentials" name="gmail_credentials">
+                            <button class="btn btn-outline-secondary" type="button">Upload</button>
+                        </div>
+                        <div class="form-text">
+                            Upload your credentials.json file from Google Cloud Console.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="use_openai" name="use_openai">
+                            <label class="form-check-label" for="use_openai">Use OpenAI for Email Parsing</label>
+                        </div>
+                        <div class="form-text">
+                            Enable to use OpenAI's language models for more accurate email parsing.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="openai_api_key" class="form-label">OpenAI API Key</label>
+                        <input type="password" class="form-control" id="openai_api_key" name="openai_api_key" 
+                               placeholder="sk-...">
+                        <div class="form-text">
+                            Required if OpenAI parsing is enabled.
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Save Email Settings
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Task Settings</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-3">
+                        <label for="default_priority" class="form-label">Default Task Priority</label>
+                        <select class="form-select" id="default_priority" name="default_priority">
+                            <option value="Low">Low</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="High">High</option>
+                            <option value="Urgent">Urgent</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="auto_assign" name="auto_assign">
+                            <label class="form-check-label" for="auto_assign">Auto-assign Tasks</label>
+                        </div>
+                        <div class="form-text">
+                            Automatically assign new tasks to users based on workload.
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Save Task Settings
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">System Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <div>Operating System:</div>
+                    <div><strong>{{ platform.system() }}</strong></div>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <div>Python Version:</div>
+                    <div><strong>{{ platform.python_version() }}</strong></div>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <div>Flask Version:</div>
+                    <div><strong>{{ flask.__version__ }}</strong></div>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <div>Database:</div>
+                    <div><strong>SQLite</strong></div>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <div>Environment:</div>
+                    <div>
+                        <span class="badge bg-info">Development</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-warning">
+                        <i class="fas fa-database me-1"></i> Backup Database
+                    </button>
+                    <button class="btn btn-info">
+                        <i class="fas fa-file-download me-1"></i> Export Tasks
+                    </button>
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-broom me-1"></i> Clear Completed Tasks
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>

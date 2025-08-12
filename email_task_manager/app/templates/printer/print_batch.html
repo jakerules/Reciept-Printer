@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Print Tasks - Email Task Manager{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-3">Print Tasks</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Selected Tasks</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if tasks %}
+                <form method="post" action="{{ url_for('printer.print_batch') }}">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="40">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="select-all-tasks" checked>
+                                        </div>
+                                    </th>
+                                    <th>Title</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th>Printed</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for task in tasks %}
+                                <tr class="task-item priority-{{ task.priority.lower() }}">
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input task-checkbox" type="checkbox" name="task_ids" value="{{ task.id }}" checked>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>{{ task.title }}</div>
+                                        {% if task.requestor_name %}
+                                        <small class="text-muted">From: {{ task.requestor_name }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if task.priority == 'Low' else 'warning' if task.priority == 'Medium' else 'danger' if task.priority == 'Urgent' else 'primary' }}">
+                                            {{ task.priority }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="task-status task-status-{{ task.status.lower().replace(' ', '-') }}">
+                                            {{ task.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if task.is_printed %}
+                                        <span class="text-success">
+                                            <i class="fas fa-check me-1"></i> {{ task.print_count }}
+                                        </span>
+                                        {% else %}
+                                        <span class="text-muted">No</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3 mb-md-0">
+                                    <label for="printer_config_id" class="form-label">Select Printer</label>
+                                    <select class="form-select" id="printer_config_id" name="printer_config_id">
+                                        <option value="">Use Default Printer</option>
+                                        {% for config in printer_configs %}
+                                        <option value="{{ config.id }}" {% if config.is_default %}selected{% endif %}>
+                                            {{ config.name }}
+                                            {% if config.is_default %} (Default){% endif %}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-md-end d-flex align-items-end justify-content-end">
+                                <a href="{{ url_for('tasks.index') }}" class="btn btn-secondary me-2">
+                                    <i class="fas fa-times me-1"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary" id="print-button">
+                                    <i class="fas fa-print me-1"></i> Print <span id="selected-count">{{ tasks|length }}</span> Tasks
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                {% else %}
+                <div class="text-center py-4">
+                    <p class="text-muted mb-3">No tasks selected for printing</p>
+                    <a href="{{ url_for('tasks.index') }}" class="btn btn-primary">
+                        <i class="fas fa-tasks me-1"></i> Select Tasks
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Printing Information</h5>
+            </div>
+            <div class="card-body">
+                <p>Review the selected tasks before printing. You can deselect any tasks you don't want to print.</p>
+                
+                <h6 class="mt-4">Receipt Format</h6>
+                <p>Each task will be printed as a separate receipt with the following information:</p>
+                <ul>
+                    <li>Task title and ID</li>
+                    <li>Description</li>
+                    <li>Priority and status</li>
+                    <li>Due date (if set)</li>
+                    <li>Requestor information</li>
+                </ul>
+                
+                <h6 class="mt-4">Printer Selection</h6>
+                <p>Select a specific printer or use the default printer configuration.</p>
+                
+                <div class="alert alert-info mt-4">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Tasks will be marked as printed after successful printing.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectAllCheckbox = document.getElementById('select-all-tasks');
+        const taskCheckboxes = document.querySelectorAll('.task-checkbox');
+        const selectedCountElement = document.getElementById('selected-count');
+        const printButton = document.getElementById('print-button');
+        
+        // Function to update selected count
+        function updateSelectedCount() {
+            const checkedCount = document.querySelectorAll('.task-checkbox:checked').length;
+            selectedCountElement.textContent = checkedCount;
+            
+            // Disable print button if no tasks selected
+            printButton.disabled = checkedCount === 0;
+        }
+        
+        // Add event listeners to checkboxes
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                const isChecked = this.checked;
+                
+                taskCheckboxes.forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+                
+                updateSelectedCount();
+            });
+        }
+        
+        taskCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateSelectedCount();
+                
+                // Update "select all" checkbox
+                if (selectAllCheckbox) {
+                    const allChecked = Array.from(taskCheckboxes).every(cb => cb.checked);
+                    const someChecked = Array.from(taskCheckboxes).some(cb => cb.checked);
+                    
+                    selectAllCheckbox.checked = allChecked;
+                    selectAllCheckbox.indeterminate = someChecked && !allChecked;
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>

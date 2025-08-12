@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Create Task - Email Task Manager{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-3">Create New Task</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-3">
+                        <label for="title" class="form-label required-field">Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="5"></textarea>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="priority" class="form-label">Priority</label>
+                            <select class="form-select" id="priority" name="priority">
+                                {% for priority in priorities %}
+                                <option value="{{ priority }}" {% if priority == 'Medium' %}selected{% endif %}>
+                                    {{ priority }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                {% for status in statuses %}
+                                <option value="{{ status }}" {% if status == 'New' %}selected{% endif %}>
+                                    {{ status }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="due_date" class="form-label">Due Date</label>
+                            <input type="datetime-local" class="form-control datepicker" id="due_date" name="due_date">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="assigned_to_id" class="form-label">Assign To</label>
+                            <select class="form-select" id="assigned_to_id" name="assigned_to_id">
+                                <option value="">Unassigned</option>
+                                {% for user in users %}
+                                <option value="{{ user.id }}">{{ user.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    <h5>Requestor Information</h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="requestor_name" class="form-label">Requestor Name</label>
+                            <input type="text" class="form-control" id="requestor_name" name="requestor_name">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="requestor_email" class="form-label">Requestor Email</label>
+                            <input type="email" class="form-control" id="requestor_email" name="requestor_email">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="location" class="form-label">Location</label>
+                        <input type="text" class="form-control" id="location" name="location">
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('tasks.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Create Task
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Task Creation Guide</h5>
+            </div>
+            <div class="card-body">
+                <p>Fill in the form to create a new task. Fields marked with <span class="text-danger">*</span> are required.</p>
+                
+                <h6 class="mt-4">Tips:</h6>
+                <ul>
+                    <li>Be specific in the task title</li>
+                    <li>Include all relevant details in the description</li>
+                    <li>Set appropriate priority and due date</li>
+                    <li>Assign the task to someone if needed</li>
+                </ul>
+                
+                <h6 class="mt-4">Priority Levels:</h6>
+                <ul class="list-unstyled">
+                    <li><span class="badge bg-success">Low</span> - Can be done when convenient</li>
+                    <li><span class="badge bg-warning">Medium</span> - Should be done soon</li>
+                    <li><span class="badge bg-danger">High</span> - Important and time-sensitive</li>
+                    <li><span class="badge bg-danger">Urgent</span> - Requires immediate attention</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>

@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Email Task Manager{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-3">User Profile</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Profile Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="avatar-circle mb-3">
+                        <span class="avatar-initials">{{ current_user.username[0]|upper }}</span>
+                    </div>
+                    <h5 class="mb-0">{{ current_user.username }}</h5>
+                    <p class="text-muted">{{ current_user.email }}</p>
+                    {% if current_user.is_admin %}
+                    <span class="badge bg-danger">Administrator</span>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label text-muted">Account Created</label>
+                    <p>{{ current_user.created_at.strftime('%Y-%m-%d') }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label text-muted">Last Login</label>
+                    <p>{{ current_user.last_login.strftime('%Y-%m-%d %H:%M') if current_user.last_login else 'Never' }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <div>Assigned Tasks:</div>
+                    <div><strong>{{ current_user.tasks.count() }}</strong></div>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <div>Completed Tasks:</div>
+                    <div><strong>{{ current_user.tasks.filter_by(status='Completed').count() }}</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Update Profile</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}">
+                    </div>
+                    
+                    <hr class="my-4">
+                    <h5>Change Password</h5>
+                    
+                    <div class="mb-3">
+                        <label for="current_password" class="form-label">Current Password</label>
+                        <input type="password" class="form-control" id="current_password" name="current_password">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="new_password" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="new_password" name="new_password">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Update Profile
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Preferences</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('main.settings') }}">
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="email_notifications" name="email_notifications" checked>
+                            <label class="form-check-label" for="email_notifications">Email Notifications</label>
+                        </div>
+                        <div class="form-text">
+                            Receive email notifications for new tasks and updates.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="auto_print" name="auto_print">
+                            <label class="form-check-label" for="auto_print">Auto-print Assigned Tasks</label>
+                        </div>
+                        <div class="form-text">
+                            Automatically print tasks when they are assigned to you.
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Save Preferences
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .avatar-circle {
+        width: 100px;
+        height: 100px;
+        background-color: #0d6efd;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto;
+    }
+    
+    .avatar-initials {
+        color: white;
+        font-size: 48px;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>

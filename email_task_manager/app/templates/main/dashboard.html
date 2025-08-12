@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Email Task Manager{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1 class="mb-3">Dashboard</h1>
+    </div>
+    <div class="col-md-6 text-md-end">
+        <a href="{{ url_for('emails.fetch') }}" class="btn btn-primary me-2">
+            <i class="fas fa-sync-alt me-1"></i> Check Emails
+        </a>
+        <a href="{{ url_for('tasks.create') }}" class="btn btn-success">
+            <i class="fas fa-plus me-1"></i> New Task
+        </a>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="stats-icon">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div class="stats-number">{{ total_tasks }}</div>
+                <div class="stats-label">Total Tasks</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="stats-icon text-warning">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <div class="stats-number">{{ new_tasks }}</div>
+                <div class="stats-label">New Tasks</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="stats-icon text-info">
+                    <i class="fas fa-spinner"></i>
+                </div>
+                <div class="stats-number">{{ in_progress_tasks }}</div>
+                <div class="stats-label">In Progress</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="stats-icon text-success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stats-number">{{ completed_tasks }}</div>
+                <div class="stats-label">Completed</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Tasks -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Tasks</h5>
+                <a href="{{ url_for('tasks.index') }}" class="btn btn-sm btn-outline-primary">
+                    View All
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for task in recent_tasks %}
+                    <a href="{{ url_for('tasks.view', task_id=task.id) }}" class="list-group-item list-group-item-action task-item priority-{{ task.priority.lower() }}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ task.title }}</h5>
+                            <small class="text-muted">{{ task.created_at.strftime('%Y-%m-%d') }}</small>
+                        </div>
+                        <p class="mb-1 text-truncate-2">{{ task.description }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="task-status task-status-{{ task.status.lower().replace(' ', '-') }}">
+                                    {{ task.status }}
+                                </span>
+                                {% if task.priority %}
+                                <span class="badge bg-{{ 'success' if task.priority == 'Low' else 'warning' if task.priority == 'Medium' else 'danger' if task.priority == 'Urgent' else 'primary' }} ms-2">
+                                    {{ task.priority }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            <div>
+                                {% if task.due_date %}
+                                <small class="text-{{ 'danger' if task.is_overdue else 'muted' }}">
+                                    <i class="far fa-calendar-alt me-1"></i>
+                                    {{ task.due_date.strftime('%Y-%m-%d') }}
+                                </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                    {% else %}
+                    <div class="list-group-item text-center py-4">
+                        <p class="mb-0 text-muted">No tasks found</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Email & Printer Status -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Email Status</h5>
+                <a href="{{ url_for('emails.index') }}" class="btn btn-sm btn-outline-primary">
+                    View All
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <div>Total Emails:</div>
+                    <div><strong>{{ total_emails }}</strong></div>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <div>Unprocessed Emails:</div>
+                    <div>
+                        <span class="badge bg-{{ 'warning' if unprocessed_emails > 0 else 'success' }}">
+                            {{ unprocessed_emails }}
+                        </span>
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('emails.fetch') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-sync-alt me-1"></i> Check for New Emails
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Printer Status</h5>
+                <a href="{{ url_for('printer.index') }}" class="btn btn-sm btn-outline-primary">
+                    Configure
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <div>Status:</div>
+                    <div>
+                        <span class="badge bg-{{ 'success' if printer_status == 'Configured' else 'warning' }}">
+                            {{ printer_status }}
+                        </span>
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('printer.print_batch') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-print me-1"></i> Print Tasks
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>

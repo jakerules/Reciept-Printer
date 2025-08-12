@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Printer - Email Task Manager{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-3">Edit Printer Configuration</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    <h5 class="mb-3">Basic Information</h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label required-field">Name</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ config.name }}" required>
+                            <div class="form-text">A unique name for this printer configuration</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="description" class="form-label">Description</label>
+                            <input type="text" class="form-control" id="description" name="description" value="{{ config.description or '' }}">
+                            <div class="form-text">Optional description for this printer</div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    <h5 class="mb-3">Printer Connection</h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="printer_type" class="form-label required-field">Printer Type</label>
+                            <select class="form-select" id="printer_type" name="printer_type" required>
+                                {% if system == 'Windows' %}
+                                <option value="windows" {% if config.printer_type == 'windows' %}selected{% endif %}>Windows Printer</option>
+                                {% else %}
+                                <option value="cups" {% if config.printer_type == 'cups' %}selected{% endif %}>CUPS Printer</option>
+                                {% endif %}
+                                <option value="network" {% if config.printer_type == 'network' %}selected{% endif %}>Network Printer</option>
+                                <option value="usb" {% if config.printer_type == 'usb' %}selected{% endif %}>USB Direct</option>
+                                <option value="file" {% if config.printer_type == 'file' %}selected{% endif %}>File Output</option>
+                            </select>
+                            <div class="form-text">The type of printer connection</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="printer_name" class="form-label required-field">Printer Name</label>
+                            <input type="text" class="form-control" id="printer_name" name="printer_name" value="{{ config.printer_name }}" required>
+                            <div class="form-text">System printer name or identifier</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="printer_address" class="form-label">Printer Address</label>
+                            <input type="text" class="form-control" id="printer_address" name="printer_address" value="{{ config.printer_address or '' }}">
+                            <div class="form-text">IP address, USB ID, or file path (if applicable)</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="printer_port" class="form-label">Printer Port</label>
+                            <input type="number" class="form-control" id="printer_port" name="printer_port" value="{{ config.printer_port or 9100 }}">
+                            <div class="form-text">Port number for network printers (usually 9100)</div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    <h5 class="mb-3">Receipt Formatting</h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="paper_width" class="form-label">Paper Width (characters)</label>
+                            <input type="number" class="form-control" id="paper_width" name="paper_width" value="{{ config.paper_width }}" min="20" max="80">
+                            <div class="form-text">Number of characters per line (typically 40 or 80)</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="font_size" class="form-label">Font Size</label>
+                            <select class="form-select" id="font_size" name="font_size">
+                                <option value="small" {% if config.font_size == 'small' %}selected{% endif %}>Small</option>
+                                <option value="normal" {% if config.font_size == 'normal' %}selected{% endif %}>Normal</option>
+                                <option value="large" {% if config.font_size == 'large' %}selected{% endif %}>Large</option>
+                            </select>
+                            <div class="form-text">Font size for printed text</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="header_text" class="form-label">Header Text</label>
+                        <input type="text" class="form-control" id="header_text" name="header_text" value="{{ config.header_text or 'Task Receipt' }}">
+                        <div class="form-text">Text to print at the top of each receipt</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="footer_text" class="form-label">Footer Text</label>
+                        <input type="text" class="form-control" id="footer_text" name="footer_text" value="{{ config.footer_text or 'Thank you!' }}">
+                        <div class="form-text">Text to print at the bottom of each receipt</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="include_logo" name="include_logo" {% if config.include_logo %}checked{% endif %}>
+                            <label class="form-check-label" for="include_logo">Include Logo</label>
+                        </div>
+                        <div class="form-text">Print a logo at the top of receipts (if supported)</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="logo_path" class="form-label">Logo Path</label>
+                        <input type="text" class="form-control" id="logo_path" name="logo_path" value="{{ config.logo_path or '' }}">
+                        <div class="form-text">Path to logo image file (if including logo)</div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    <h5 class="mb-3">Behavior Settings</h5>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="auto_print" name="auto_print" {% if config.auto_print %}checked{% endif %}>
+                            <label class="form-check-label" for="auto_print">Auto-print New Tasks</label>
+                        </div>
+                        <div class="form-text">Automatically print tasks when they are created</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="print_on_status_change" name="print_on_status_change" {% if config.print_on_status_change %}checked{% endif %}>
+                            <label class="form-check-label" for="print_on_status_change">Print on Status Change</label>
+                        </div>
+                        <div class="form-text">Print tasks when their status changes</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="cut_paper" name="cut_paper" {% if config.cut_paper %}checked{% endif %}>
+                            <label class="form-check-label" for="cut_paper">Cut Paper</label>
+                        </div>
+                        <div class="form-text">Cut the paper after printing (if supported)</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="copies" class="form-label">Copies</label>
+                        <input type="number" class="form-control" id="copies" name="copies" value="{{ config.copies }}" min="1" max="10">
+                        <div class="form-text">Number of copies to print</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if config.is_active %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">Active</label>
+                        </div>
+                        <div class="form-text">Enable or disable this printer configuration</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="is_default" name="is_default" {% if config.is_default %}checked{% endif %} {% if config.is_default %}disabled{% endif %}>
+                            <label class="form-check-label" for="is_default">Set as Default Printer</label>
+                        </div>
+                        <div class="form-text">
+                            {% if config.is_default %}
+                            This is currently the default printer
+                            {% else %}
+                            Make this the default printer for task printing
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('printer.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i> Cancel
+                        </a>
+                        <div>
+                            <a href="{{ url_for('printer.test_print', config_id=config.id) }}" class="btn btn-info me-2">
+                                <i class="fas fa-print me-1"></i> Test Print
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Printer Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <div>Created:</div>
+                    <div>{{ config.created_at.strftime('%Y-%m-%d') }}</div>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <div>Last Updated:</div>
+                    <div>{{ config.updated_at.strftime('%Y-%m-%d') }}</div>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <div>Status:</div>
+                    <div>
+                        <span class="badge bg-{{ 'success' if config.is_active else 'secondary' }}">
+                            {{ 'Active' if config.is_active else 'Inactive' }}
+                        </span>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <div>Default:</div>
+                    <div>
+                        <span class="badge bg-{{ 'success' if config.is_default else 'light text-dark' }}">
+                            {{ 'Yes' if config.is_default else 'No' }}
+                        </span>
+                    </div>
+                </div>
+                
+                <hr class="my-3">
+                
+                <h6 class="mt-4">Tips:</h6>
+                <ul>
+                    <li>Test your configuration after making changes</li>
+                    <li>For network printers, ensure the IP address is correct</li>
+                    <li>For USB printers, check the vendor and product IDs</li>
+                    <li>Adjust paper width to match your receipt printer</li>
+                </ul>
+                
+                {% if not config.is_default %}
+                <div class="alert alert-info mt-4">
+                    <i class="fas fa-info-circle me-2"></i>
+                    You can set this printer as the default for automatic printing.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const printerTypeSelect = document.getElementById('printer_type');
+        const printerAddressField = document.getElementById('printer_address');
+        const printerPortField = document.getElementById('printer_port');
+        const printerAddressLabel = document.querySelector('label[for="printer_address"]');
+        
+        // Update fields based on printer type
+        function updateFields() {
+            const printerType = printerTypeSelect.value;
+            
+            switch(printerType) {
+                case 'network':
+                    printerAddressLabel.textContent = 'IP Address';
+                    printerAddressField.placeholder = '192.168.1.100';
+                    printerPortField.disabled = false;
+                    break;
+                case 'usb':
+                    printerAddressLabel.textContent = 'USB ID';
+                    printerAddressField.placeholder = '0x1234:0x5678';
+                    printerPortField.disabled = true;
+                    break;
+                case 'file':
+                    printerAddressLabel.textContent = 'File Path';
+                    printerAddressField.placeholder = '/path/to/output.txt';
+                    printerPortField.disabled = true;
+                    break;
+                default:
+                    printerAddressLabel.textContent = 'Printer Address';
+                    printerAddressField.placeholder = '';
+                    printerPortField.disabled = true;
+            }
+        }
+        
+        // Initialize fields
+        updateFields();
+        
+        // Update fields when printer type changes
+        printerTypeSelect.addEventListener('change', updateFields);
+    });
+</script>
+{% endblock %}
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>

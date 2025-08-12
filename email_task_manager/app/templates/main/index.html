@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Email Task Manager - Welcome{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <h1 class="display-4 mb-4">
+                    <i class="fas fa-envelope-open-text text-primary me-3"></i>
+                    Email Task Manager
+                </h1>
+                <p class="lead">
+                    A complete solution for parsing emails, managing tasks, and printing receipts.
+                </p>
+                <hr class="my-4">
+                <p>
+                    This application helps you convert emails into actionable tasks and print them as receipts.
+                </p>
+                <div class="mt-4">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg me-2">
+                        <i class="fas fa-sign-in-alt me-2"></i> Login
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-user-plus me-2"></i> Register
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-5">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-envelope fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">Email Integration</h5>
+                        <p class="card-text">
+                            Automatically fetch and parse emails from your Gmail account.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-tasks fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">Task Management</h5>
+                        <p class="card-text">
+                            Convert emails into organized tasks with priorities and due dates.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-print fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">Receipt Printing</h5>
+                        <p class="card-text">
+                            Print tasks as receipts on thermal printers for physical tracking.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>

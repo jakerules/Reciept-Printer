@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Task - Email Task Manager{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-3">Edit Task</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-3">
+                        <label for="title" class="form-label required-field">Title</label>
+                        <input type="text" class="form-control" id="title" name="title" value="{{ task.title }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="5">{{ task.description }}</textarea>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="priority" class="form-label">Priority</label>
+                            <select class="form-select" id="priority" name="priority">
+                                {% for priority in priorities %}
+                                <option value="{{ priority }}" {% if task.priority == priority %}selected{% endif %}>
+                                    {{ priority }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                {% for status in statuses %}
+                                <option value="{{ status }}" {% if task.status == status %}selected{% endif %}>
+                                    {{ status }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="due_date" class="form-label">Due Date</label>
+                            <input type="datetime-local" class="form-control datepicker" id="due_date" name="due_date" 
+                                   value="{{ task.due_date.strftime('%Y-%m-%dT%H:%M') if task.due_date else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="assigned_to_id" class="form-label">Assign To</label>
+                            <select class="form-select" id="assigned_to_id" name="assigned_to_id">
+                                <option value="">Unassigned</option>
+                                {% for user in users %}
+                                <option value="{{ user.id }}" {% if task.assigned_to_id == user.id %}selected{% endif %}>
+                                    {{ user.username }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    <h5>Requestor Information</h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="requestor_name" class="form-label">Requestor Name</label>
+                            <input type="text" class="form-control" id="requestor_name" name="requestor_name" value="{{ task.requestor_name or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="requestor_email" class="form-label">Requestor Email</label>
+                            <input type="email" class="form-control" id="requestor_email" name="requestor_email" value="{{ task.requestor_email or '' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="location" class="form-label">Location</label>
+                        <input type="text" class="form-control" id="location" name="location" value="{{ task.location or '' }}">
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('tasks.view', task_id=task.id) }}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Task Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <div>Created:</div>
+                    <div>{{ task.created_at.strftime('%Y-%m-%d') }}</div>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <div>Last Updated:</div>
+                    <div>{{ task.updated_at.strftime('%Y-%m-%d') }}</div>
+                </div>
+                {% if task.completed_at %}
+                <div class="d-flex justify-content-between mb-3">
+                    <div>Completed:</div>
+                    <div>{{ task.completed_at.strftime('%Y-%m-%d') }}</div>
+                </div>
+                {% endif %}
+                <div class="d-flex justify-content-between mb-3">
+                    <div>Printed:</div>
+                    <div>
+                        {% if task.is_printed %}
+                        <span class="text-success">
+                            Yes ({{ task.print_count }} times)
+                        </span>
+                        {% else %}
+                        <span class="text-muted">No</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if task.last_printed_at %}
+                <div class="d-flex justify-content-between mb-3">
+                    <div>Last Printed:</div>
+                    <div>{{ task.last_printed_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                </div>
+                {% endif %}
+                
+                <hr class="my-3">
+                
+                <div class="d-grid gap-2">
+                    <form action="{{ url_for('tasks.print_task_route', task_id=task.id) }}" method="post">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-print me-1"></i> Print Task
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteTaskModal">
+                        <i class="fas fa-trash me-1"></i> Delete Task
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteTaskModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this task?</p>
+                <p class="mb-0"><strong>{{ task.title }}</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('tasks.delete', task_id=task.id) }}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>

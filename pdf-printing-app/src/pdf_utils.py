@@ -16,31 +16,59 @@ def _download_google_drive(url, params, headers, cookies):
         
         print(f"Initial response status: {response.status_code}")
         print(f"Content-Type: {response.headers.get('Content-Type', 'unknown')}")
+        print(f"Response length: {len(response.content)} bytes")
         
         if 'Content-Disposition' in response.headers:
             print("Found Content-Disposition header - direct download successful")
             content = response.content
         else:
-            # If we got HTML, look for the download form
-            print("Looking for download token in response...")
+            print("No Content-Disposition header, attempting alternative methods...")
+            
+            # Try different approaches to get the download token
             download_token = None
             
+            # Method 1: Look for the standard confirm token
             if 'confirm=' in response.text:
                 token_start = response.text.find('confirm=') + 8
                 token_end = response.text.find('&', token_start)
                 if token_end == -1:
                     token_end = response.text.find('"', token_start)
-                download_token = response.text[token_start:token_end]
-                
-                print(f"Found download token: {download_token}")
-                
-                # Make the actual download request
-                params['confirm'] = download_token
-                response = session.get(url, params=params, headers=headers, cookies=cookies)
-                response.raise_for_status()
-                content = response.content
-            else:
-                raise Exception("Could not find download token in response")
+                if token_end != -1:
+                    download_token = response.text[token_start:token_end]
+                    print(f"Found standard download token: {download_token}")
+            
+            # Method 2: Try with a simple 't' token
+            if not download_token:
+                print("Trying with simple token 't'...")
+                download_token = 't'
+            
+            # Make the actual download request with the token
+            params['confirm'] = download_token
+            
+            # Remove any existing cookies and use a fresh session
+            session = requests.Session()
+            
+            # Add specific headers for file download
+            download_headers = headers.copy()
+            download_headers.update({
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
+            })
+            
+            print(f"Making download request with token: {download_token}")
+            response = session.get(url, params=params, headers=download_headers, cookies=cookies, allow_redirects=True)
+            response.raise_for_status()
+            
+            print(f"Download response status: {response.status_code}")
+            print(f"Download response headers: {dict(response.headers)}")
+            
+            if 'Content-Type' in response.headers:
+                print(f"Download Content-Type: {response.headers['Content-Type']}")
+            
+            content = response.content
+            print(f"Downloaded content size: {len(content)} bytes")
         
         # Verify the content is a PDF
         if content.startswith(b'%PDF-'):
@@ -68,25 +96,34 @@ def download_pdf(url):
         print(f"Extracted Google Drive file ID: {file_id}")
         
         # For Google Drive, we'll use a different approach
-        cookies = {
-            'download_warning_13058876_1': '1',
-            'NID': '511=GHpX3L9h-Zk9ovH9plzL_RaUPFYQgnkp4YAOXgL13w',
-        }
+        # Try the direct usercontent.google.com URL first
+        direct_url = f'https://drive.usercontent.google.com/download?id={file_id}&export=download'
+        print(f"Trying direct usercontent URL: {direct_url}")
         
         headers = {
-            'Authority': 'drive.google.com',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
-            'X-Chrome-Connected': 'source=Chrome,id=115.0.0.0,mode=0,enable_account_consistency=1,consistency_enable_account_manager=1',
+            'Accept': 'application/pdf,application/octet-stream,*/*',
+        }
+        
+        try:
+            # First attempt with the direct URL
+            session = requests.Session()
+            response = session.get(direct_url, headers=headers)
+            if response.status_code == 200 and response.headers.get('Content-Type', '').startswith(('application/pdf', 'application/octet-stream')):
+                print("Direct URL successful!")
+                return io.BytesIO(response.content)
+        except Exception as e:
+            print(f"Direct URL attempt failed: {str(e)}")
+        
+        # If direct URL fails, try the traditional method
+        cookies = {
+            'download_warning_13058876_1': '1',
         }
         
         params = {
             'id': file_id,
             'export': 'download',
             'confirm': 't',
-            'uuid': '869c3f61-76f1-4592-87cf-756a87d19e22',
-            'at': 'AHAOulvmEmKF_kauHCXKwxcGBXmY:1692159556590',
         }
         
         url = 'https://drive.google.com/uc'

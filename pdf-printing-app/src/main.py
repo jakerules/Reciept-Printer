@@ -16,13 +16,31 @@ def handle_print_job():
         if not data:
             return jsonify({"error": "No JSON data received"}), 400
 
-        # Required fields
-        pdf_url = data.get('pdf_url')
-        footer_text = data.get('footer_text')
-        job_data = data.get('job_data')
+        # Convert array format to dictionary
+        data_dict = {}
+        for item in data:
+            for key, value in item.items():
+                data_dict[key] = value
 
-        if not all([pdf_url, footer_text, job_data]):
-            return jsonify({"error": "Missing required fields"}), 400
+        # Required fields
+        pdf_url = data_dict.get('URL')
+        job_data = {
+            'JobID': data_dict.get('JobID'),
+            'quantity': data_dict.get('quantity'),
+            'size': data_dict.get('size'),
+            'date': data_dict.get('date'),
+            'staple': data_dict.get('staple'),
+            '2side': data_dict.get('2side'),
+            'hole': data_dict.get('hole'),
+            'who': data_dict.get('who'),
+            'where': data_dict.get('where')
+        }
+        
+        # Use JobID as footer text
+        footer_text = f"Job ID: {job_data['JobID']}"
+
+        if not all([pdf_url, job_data['JobID']]):
+            return jsonify({"error": "Missing required fields (URL or JobID)"}), 400
 
         # Step 1: Download and process PDF
         pdf_stream = download_pdf(pdf_url)

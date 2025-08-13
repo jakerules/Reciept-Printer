@@ -5,26 +5,66 @@ from reportlab.lib.pagesizes import letter
 import io
 
 def download_pdf(url):
+    print(f"Starting download from URL: {url}")
+    
+    # Extract file ID from Google Drive URL if present
+    file_id = None
+    if 'drive.google.com' in url or 'drive.usercontent.google.com' in url:
+        if 'id=' in url:
+            file_id = url.split('id=')[1].split('&')[0]
+        elif '/d/' in url:
+            file_id = url.split('/d/')[1].split('/')[0]
+        
+        print(f"Extracted Google Drive file ID: {file_id}")
+    
+    if file_id:
+        # Use the direct download URL format
+        url = f'https://drive.google.com/uc?export=download&id={file_id}'
+        print(f"Using Google Drive direct download URL: {url}")
+    
     # Set up headers to mimic a browser request
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'application/pdf,application/octet-stream',
+        'Accept-Encoding': 'gzip, deflate, br',
     }
     
     try:
-        # Make initial request
-        response = requests.get(url, headers=headers, stream=True, allow_redirects=True)
+        print("Making initial request...")
+        # Make initial request with cookies enabled
+        session = requests.Session()
+        response = session.get(url, headers=headers, stream=True)
         response.raise_for_status()
+        
+        print(f"Initial response status code: {response.status_code}")
+        print(f"Initial response headers: {dict(response.headers)}")
         
         # Check if we got a Google Drive "virus scan" warning page
         if 'Content-Type' in response.headers and 'text/html' in response.headers['Content-Type'].lower():
-            # Extract the download link from the response if it's the virus scan page
+            print("Received HTML response, checking for virus scan warning...")
+            
+            # Get the confirmation token
             if 'Google Drive - Virus scan warning' in response.text:
-                confirm_url = url + '&confirm=t'
-                response = requests.get(confirm_url, headers=headers, stream=True)
+                print("Detected virus scan warning page, attempting to bypass...")
+                confirm_url = f'https://drive.google.com/uc?export=download&confirm=t&id={file_id}'
+                print(f"Using confirmation URL: {confirm_url}")
+                
+                response = session.get(confirm_url, headers=headers, stream=True)
                 response.raise_for_status()
+                print(f"Confirmation response status code: {response.status_code}")
+                print(f"Confirmation response headers: {dict(response.headers)}")
         
+        # Verify content type is PDF or binary
+        content_type = response.headers.get('Content-Type', '').lower()
+        print(f"Final response content type: {content_type}")
+        
+        if not ('pdf' in content_type or 'octet-stream' in content_type or 'application/x-download' in content_type):
+            if len(response.content) < 1000:  # If response is small, it might be an error page
+                print(f"Response content (first 1000 bytes): {response.content[:1000]}")
+            raise Exception(f"Unexpected content type: {content_type}")
+            
         content = response.content
+        print(f"Downloaded content size: {len(content)} bytes")
         
         # Verify it's a valid PDF
         pdf_stream = io.BytesIO(content)

@@ -6,6 +6,9 @@ import win32api
 import tempfile
 import time
 
+# Define the printer IP address
+printer_ip = "192.168.1.55"
+
 def send_pdf_to_printer(pdf_path, printer_destination):
     """
     Send a PDF to either a network printer or local Windows printer

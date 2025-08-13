@@ -43,13 +43,29 @@ def handle_print_job():
             return jsonify({"error": "Missing required fields (URL or JobID)"}), 400
 
         # Step 1: Download and process PDF
-        pdf_stream = download_pdf(pdf_url)
+        try:
+            pdf_stream = download_pdf(pdf_url)
+        except Exception as e:
+            return jsonify({
+                "error": f"Failed to download or validate PDF: {str(e)}",
+                "url": pdf_url
+            }), 500
         
         # Step 2: Add footer text
-        modified_pdf_stream = add_footer_text(pdf_stream, footer_text)
+        try:
+            modified_pdf_stream = add_footer_text(pdf_stream, footer_text)
+        except Exception as e:
+            return jsonify({
+                "error": f"Failed to add footer to PDF: {str(e)}"
+            }), 500
         
         # Step 3: Save modified PDF
-        save_modified_pdf(modified_pdf_stream, modified_pdf_path)
+        try:
+            save_modified_pdf(modified_pdf_stream, modified_pdf_path)
+        except Exception as e:
+            return jsonify({
+                "error": f"Failed to save modified PDF: {str(e)}"
+            }), 500
         
         # Step 4: Send to IP printer
         print_result = send_pdf_to_printer(modified_pdf_path, printer_ip)

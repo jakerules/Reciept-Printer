@@ -1,0 +1,5 @@
+printer_ip = "192.168.1.100"
+pos_printer_ip = "192.168.1.101"
+pdf_download_path = "/tmp/downloaded_pdf.pdf"
+modified_pdf_path = "/tmp/modified_pdf.pdf"
+receipt_template = "Job ID: {}\nQuantity: {}\nPaper Size: {}\nDate Wanted: {}\nPages: {}\nStaple: {}\nDouble Sided: {}\nHole Punch: {}"

@@ -18,49 +18,44 @@ pdf-printing-app
 
 ## Prerequisites
 
+- Windows 10/11
 - Python 3.7 or higher
 - Network-enabled IP printer for main document printing
-- USB receipt printer (e.g., ESC/POS compatible)
+- Receipt printer installed in Windows
 - Network connectivity to access PDF URLs
-- Linux/Unix system for USB printer access
+- Administrator access for printer configuration
 
 ## Setup Instructions
 
 1. Clone the repository:
-   ```bash
+   ```cmd
    git clone <repository-url>
    cd pdf-printing-app
    ```
 
 2. Install the required dependencies:
-   ```bash
+   ```cmd
    pip install -r requirements.txt
    ```
 
-3. Set up USB printer permissions:
-   ```bash
-   # Add your user to the 'lp' group to access printers
-   sudo usermod -a -G lp $USER
-   
-   # Make the printer device writable (adjust device path as needed)
-   sudo chmod 666 /dev/usb/lp0
-   
-   # You may need to log out and back in for group changes to take effect
-   ```
+3. Configure Windows Printer:
+   - Open Windows Settings
+   - Go to Devices > Printers & scanners
+   - Add your receipt printer if not already installed
+   - Note down the exact printer name as shown in Windows
 
 4. Configure the printer settings in `src/config.py`:
    ```python
    printer_ip = "192.168.1.100"  # Your IP printer address for documents
-   usb_receipt_printer = "/dev/usb/lp0"  # Your USB receipt printer device
+   receipt_printer_name = "RECEIPT-PRINTER"  # Your Windows printer name
    ```
 
-5. Verify printer device path:
-   ```bash
-   # List available USB printer devices
-   ls -l /dev/usb/lp*
-   
-   # The correct device should appear in the list
-   # If your printer is on a different device, update config.py accordingly
+5. Verify printer configuration:
+   ```python
+   # In Python console
+   import win32print
+   printers = [printer[2] for printer in win32print.EnumPrinters(2)]
+   print(printers)  # Should list your receipt printer
    ```
 
 ## Running the Application
@@ -172,27 +167,33 @@ The application includes robust error handling for:
 
 Common issues and solutions:
 
-1. USB Printer Not Found
-   ```bash
-   # Check if the printer is connected and recognized
-   ls -l /dev/usb/lp*
-   # Should show your printer device(s)
+1. Printer Not Found
+   ```python
+   # Check if Windows can see your printer
+   import win32print
+   printers = [printer[2] for printer in win32print.EnumPrinters(2)]
+   print(printers)
    ```
 
-2. Permission Denied
-   ```bash
-   # Verify your user is in the 'lp' group
-   groups $USER
-   
-   # Check device permissions
-   ls -l /dev/usb/lp0
-   # Should show: crw-rw-rw-
-   ```
+2. Permission Issues
+   - Run Command Prompt as Administrator
+   - Verify printer permissions in Windows Security settings
+   - Check printer sharing settings if using network printer
 
 3. Print Quality Issues
-   - Verify printer is properly configured in config.py
-   - Check if correct ESC/POS commands are being used for your printer model
-   - Ensure printer is not in error state (paper jam, out of paper, etc.)
+   - Open Printer Properties in Windows
+   - Verify printer preferences and default settings
+   - Update printer drivers if needed
+   - Check printer status in Windows queue
+
+4. Common Windows Printer Problems
+   - Clear printer queue if jobs are stuck
+   - Restart Print Spooler service:
+     ```cmd
+     net stop spooler
+     net start spooler
+     ```
+   - Check Windows Event Viewer for printer errors
 
 ## Contributing
 

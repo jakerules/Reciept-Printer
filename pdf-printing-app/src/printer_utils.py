@@ -34,51 +34,56 @@ def send_to_network_printer(pdf_path, printer_ip):
         print(f"Error sending PDF to network printer: {e}")
         return None
 
-def send_to_usb_printer(pdf_path, printer_device):
-    """Send PDF to a USB printer"""
+def send_to_windows_printer(pdf_path, printer_name):
+    """Send PDF to a Windows printer"""
     try:
-        if not os.path.exists(printer_device):
-            raise FileNotFoundError(f"Printer device {printer_device} not found")
+        if printer_name not in [printer[2] for printer in win32print.EnumPrinters(2)]:
+            raise ValueError(f"Printer '{printer_name}' not found")
             
-        # For receipt printer, we might need to add special formatting or commands here
-        with open(pdf_path, 'rb') as pdf_file:
-            data = pdf_file.read()
-            
-        with open(printer_device, 'wb') as printer:
-            printer.write(data)
-            # Add form feed character to eject the page
-            printer.write(b'\f')
-            
-        return {"status": "success", "device": printer_device}
+        win32api.ShellExecute(0, "print", pdf_path, f'"{printer_name}"', ".", 0)
+        return {"status": "success", "printer": printer_name}
     except Exception as e:
-        print(f"Error sending to USB printer: {e}")
+        print(f"Error sending to Windows printer: {e}")
         return None
 
-def send_receipt_to_printer(text, printer_device):
+def send_receipt_to_printer(text, printer_name):
     """
-    Send text receipt to USB printer with proper formatting
+    Send text receipt to Windows printer with proper formatting
     """
     try:
-        if not os.path.exists(printer_device):
-            raise FileNotFoundError(f"Printer device {printer_device} not found")
+        # Create a temporary file for the formatted receipt
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.txt', mode='w', encoding='utf-8') as temp:
+            # Add receipt formatting
+            formatted_text = (
+                "\x1B@"  # Initialize printer
+                + text
+                + "\n\n\n"  # Add some line feeds for spacing
+                + "\x1D\x56\x41\x03"  # Paper cut command
+            )
+            temp.write(formatted_text)
+            temp_path = temp.name
 
-        # Add receipt printer initialization sequence if needed
-        init_sequence = b'\x1b\x40'  # ESC @ - Initialize printer
-        
-        # Format the text for the receipt printer
-        formatted_text = (
-            text.encode('ascii', 'replace')  # Convert to ASCII
-            + b'\n\n\n'  # Add some line feeds for spacing
-            + b'\x1d\x56\x41\x03'  # Paper cut command (may need adjustment for your printer)
-        )
-        
-        with open(printer_device, 'wb') as printer:
-            printer.write(init_sequence)
-            printer.write(formatted_text)
+        # Get the default printer handle
+        printer_handle = win32print.OpenPrinter(printer_name)
+        try:
+            # Start a print job
+            job = win32print.StartDocPrinter(printer_handle, 1, ("Receipt", None, "RAW"))
+            try:
+                win32print.StartPagePrinter(printer_handle)
+                with open(temp_path, 'rb') as f:
+                    data = f.read()
+                    win32print.WritePrinter(printer_handle, data)
+                win32print.EndPagePrinter(printer_handle)
+            finally:
+                win32print.EndDocPrinter(printer_handle)
+        finally:
+            win32print.ClosePrinter(printer_handle)
             
-        return {"status": "success", "device": printer_device}
+        # Clean up temporary file
+        os.unlink(temp_path)
+        return {"status": "success", "printer": printer_name}
     except Exception as e:
-        print(f"Error sending receipt to USB printer: {e}")
+        print(f"Error sending receipt to printer: {e}")
         return None
 
 def check_printer_status(printer_destination):

@@ -4,6 +4,56 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 import io
 
+def _download_google_drive(url, params, headers, cookies):
+    """Helper function to handle Google Drive downloads with proper authentication."""
+    print("Attempting Google Drive download...")
+    session = requests.Session()
+    
+    try:
+        # First request to get the download token
+        response = session.get(url, params=params, headers=headers, cookies=cookies)
+        response.raise_for_status()
+        
+        print(f"Initial response status: {response.status_code}")
+        print(f"Content-Type: {response.headers.get('Content-Type', 'unknown')}")
+        
+        if 'Content-Disposition' in response.headers:
+            print("Found Content-Disposition header - direct download successful")
+            content = response.content
+        else:
+            # If we got HTML, look for the download form
+            print("Looking for download token in response...")
+            download_token = None
+            
+            if 'confirm=' in response.text:
+                token_start = response.text.find('confirm=') + 8
+                token_end = response.text.find('&', token_start)
+                if token_end == -1:
+                    token_end = response.text.find('"', token_start)
+                download_token = response.text[token_start:token_end]
+                
+                print(f"Found download token: {download_token}")
+                
+                # Make the actual download request
+                params['confirm'] = download_token
+                response = session.get(url, params=params, headers=headers, cookies=cookies)
+                response.raise_for_status()
+                content = response.content
+            else:
+                raise Exception("Could not find download token in response")
+        
+        # Verify the content is a PDF
+        if content.startswith(b'%PDF-'):
+            print("Content verified as PDF")
+            return io.BytesIO(content)
+        else:
+            raise Exception("Downloaded content is not a PDF file")
+            
+    except requests.exceptions.RequestException as e:
+        raise Exception(f"Failed to download from Google Drive: {str(e)}")
+    except Exception as e:
+        raise Exception(f"Error processing Google Drive download: {str(e)}")
+
 def download_pdf(url):
     print(f"Starting download from URL: {url}")
     
@@ -16,13 +66,33 @@ def download_pdf(url):
             file_id = url.split('/d/')[1].split('/')[0]
         
         print(f"Extracted Google Drive file ID: {file_id}")
+        
+        # For Google Drive, we'll use a different approach
+        cookies = {
+            'download_warning_13058876_1': '1',
+            'NID': '511=GHpX3L9h-Zk9ovH9plzL_RaUPFYQgnkp4YAOXgL13w',
+        }
+        
+        headers = {
+            'Authority': 'drive.google.com',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+            'X-Chrome-Connected': 'source=Chrome,id=115.0.0.0,mode=0,enable_account_consistency=1,consistency_enable_account_manager=1',
+        }
+        
+        params = {
+            'id': file_id,
+            'export': 'download',
+            'confirm': 't',
+            'uuid': '869c3f61-76f1-4592-87cf-756a87d19e22',
+            'at': 'AHAOulvmEmKF_kauHCXKwxcGBXmY:1692159556590',
+        }
+        
+        url = 'https://drive.google.com/uc'
+        return _download_google_drive(url, params, headers, cookies)
     
-    if file_id:
-        # Use the direct download URL format
-        url = f'https://drive.google.com/uc?export=download&id={file_id}'
-        print(f"Using Google Drive direct download URL: {url}")
-    
-    # Set up headers to mimic a browser request
+    # For non-Google Drive URLs, use standard headers
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         'Accept': 'application/pdf,application/octet-stream',

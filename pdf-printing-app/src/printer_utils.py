@@ -70,7 +70,7 @@ def send_receipt_to_printer(text, printer_name):
         printer_handle = win32print.OpenPrinter(printer_name)
         try:
             # Start a print job
-            job = win32print.StartDocPrinter(printer_handle, 1, ("Receipt", None, "RAW"))
+            job = win32print.StartDocPrinter(printer_handle, 1, ("Receipt", "", "RAW"))
             try:
                 win32print.StartPagePrinter(printer_handle)
                 with open(temp_path, 'rb') as f:

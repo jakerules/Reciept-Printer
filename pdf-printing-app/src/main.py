@@ -3,7 +3,9 @@ import os
 from pdf_utils import download_pdf, add_footer_text, save_modified_pdf
 from printer_utils import send_pdf_to_printer, send_receipt_to_printer
 from receipt_utils import generate_receipt
-from config import printer_ip, usb_receipt_printer, pdf_download_path, modified_pdf_path
+from config import printer_ip, pdf_download_path, modified_pdf_path
+# Define usb_receipt_printer here if needed, for example:
+usb_receipt_printer = "/dev/usb/lp0"  # Update this path as appropriate for your environment
 
 app = Flask(__name__)
 

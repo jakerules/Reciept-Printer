@@ -19,9 +19,10 @@ pdf-printing-app
 ## Prerequisites
 
 - Python 3.7 or higher
-- Network-enabled IP printer
-- POS receipt printer
+- Network-enabled IP printer for main document printing
+- USB receipt printer (e.g., ESC/POS compatible)
 - Network connectivity to access PDF URLs
+- Linux/Unix system for USB printer access
 
 ## Setup Instructions
 
@@ -36,10 +37,30 @@ pdf-printing-app
    pip install -r requirements.txt
    ```
 
-3. Configure the printer settings in `src/config.py`:
+3. Set up USB printer permissions:
+   ```bash
+   # Add your user to the 'lp' group to access printers
+   sudo usermod -a -G lp $USER
+   
+   # Make the printer device writable (adjust device path as needed)
+   sudo chmod 666 /dev/usb/lp0
+   
+   # You may need to log out and back in for group changes to take effect
+   ```
+
+4. Configure the printer settings in `src/config.py`:
    ```python
-   printer_ip = "192.168.1.100"  # Your IP printer address
-   pos_printer_ip = "192.168.1.101"  # Your POS printer address
+   printer_ip = "192.168.1.100"  # Your IP printer address for documents
+   usb_receipt_printer = "/dev/usb/lp0"  # Your USB receipt printer device
+   ```
+
+5. Verify printer device path:
+   ```bash
+   # List available USB printer devices
+   ls -l /dev/usb/lp*
+   
+   # The correct device should appear in the list
+   # If your printer is on a different device, update config.py accordingly
    ```
 
 ## Running the Application
@@ -126,8 +147,10 @@ Error (500 Internal Server Error):
 
 - **Printing Capabilities**
   - Sends modified PDFs to network-enabled IP printers
-  - Generates formatted receipts for POS printers
-  - Supports multiple printer configurations
+  - Direct USB printing support for receipt printer
+  - ESC/POS command support for receipt formatting
+  - Automatic paper cutting and formatting for receipts
+  - Supports mixed network and USB printer configurations
 
 - **Job Receipt Details**
   - Comprehensive job information
@@ -140,8 +163,36 @@ The application includes robust error handling for:
 - Invalid JSON data
 - Missing required fields
 - PDF download failures
-- Printer connection issues
+- Network printer connection issues
+- USB printer access permissions
+- Device not found errors
 - File processing errors
+
+## Troubleshooting
+
+Common issues and solutions:
+
+1. USB Printer Not Found
+   ```bash
+   # Check if the printer is connected and recognized
+   ls -l /dev/usb/lp*
+   # Should show your printer device(s)
+   ```
+
+2. Permission Denied
+   ```bash
+   # Verify your user is in the 'lp' group
+   groups $USER
+   
+   # Check device permissions
+   ls -l /dev/usb/lp0
+   # Should show: crw-rw-rw-
+   ```
+
+3. Print Quality Issues
+   - Verify printer is properly configured in config.py
+   - Check if correct ESC/POS commands are being used for your printer model
+   - Ensure printer is not in error state (paper jam, out of paper, etc.)
 
 ## Contributing
 

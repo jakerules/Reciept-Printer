@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify
 import os
 from pdf_utils import download_pdf, add_footer_text, save_modified_pdf
-from printer_utils import send_pdf_to_printer
+from printer_utils import send_pdf_to_printer, send_receipt_to_printer
 from receipt_utils import generate_receipt
-from config import printer_ip, pos_printer_ip, pdf_download_path, modified_pdf_path
+from config import printer_ip, usb_receipt_printer, pdf_download_path, modified_pdf_path
 
 app = Flask(__name__)
 
@@ -38,7 +38,7 @@ def handle_print_job():
             
         # Step 5: Generate and print receipt
         receipt_text = generate_receipt(job_data)
-        receipt_result = send_pdf_to_printer(receipt_text, pos_printer_ip)
+        receipt_result = send_receipt_to_printer(receipt_text, usb_receipt_printer)
         if not receipt_result:
             return jsonify({"warning": "PDF printed but receipt failed to print"}), 206
 
@@ -56,4 +56,4 @@ def handle_print_job():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5112)

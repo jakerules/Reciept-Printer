@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Receipt Printer</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; }
+        textarea { width: 100%; max-width: 500px; }
+    </style>
+</head>
+<body>
+    <h1>Receipt Printer</h1>
+    <p>Enter the text you want to print below.</p>
+    <form action="/print" method="post">
+        <textarea name="text_to_print" rows="10" cols="50" required></textarea>
+        <br>
+        <input type="submit" value="Print">
+    </form>
+</body>
+</html>
